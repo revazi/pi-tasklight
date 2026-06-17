@@ -1,0 +1,25 @@
+{
+  "name": "@tasklight/pi-tasklight",
+  "version": "0.1.0",
+  "description": "Pi extension for Tasklight notifications",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "tasklight",
+    "notifications"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "README.md",
+    "extensions"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/tasklight.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
