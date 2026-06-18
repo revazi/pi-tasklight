@@ -1,27 +1,51 @@
-# pi-tasklight
+<!--
+Badges to add after npm publish:
 
-Pi extension package for the Tasklight CLI.
+[![npm version](https://img.shields.io/npm/v/@tasklight/pi-tasklight.svg)](https://www.npmjs.com/package/@tasklight/pi-tasklight)
+[![npm downloads](https://img.shields.io/npm/dm/@tasklight/pi-tasklight.svg)](https://www.npmjs.com/package/@tasklight/pi-tasklight)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+-->
 
-`pi-tasklight` adds Tasklight notifications to Pi coding-agent sessions. Use it when you want Pi to do a task and notify you with a short summary when the task finishes.
+# Pi Tasklight
+
+Tasklight notifications for [Pi](https://github.com/earendil-works/pi) coding-agent sessions.
+
+Use Pi Tasklight when you want Pi to work in the background and notify you with a short outcome summary when it finishes.
 
 ```text
 /tl fix the failing auth test
 ```
 
-When Pi finishes, the extension calls:
+When Pi is done, Pi Tasklight sends a Tasklight desktop notification like:
 
-```bash
-tasklight notify ...
+```text
+Pi task finished in 2m 14s
+Fixed the failing auth test setup.
 ```
 
-It avoids a second summarization model call. For `/tl` and always-on turns, the extension adds a tiny per-turn instruction asking Pi to include one short hidden notification summary marker, strips that marker from the final assistant message, and sends the summary to Tasklight.
+No second summarization model call is used. The extension asks Pi for one tiny hidden summary marker, strips it from the final answer, and passes that summary to Tasklight.
+
+---
+
+## Features
+
+- `/tl <prompt>` runs a one-off Pi task and notifies when it finishes.
+- `/tl` opens a package info overlay with Tasklight doctor status and project links.
+- Optional always-on mode for normal Pi prompts.
+- Short notification summaries without a second LLM call.
+- `tasklight doctor` and test notification commands inside Pi.
+- Session-aware notification titles like `Pi - <session name>`.
+- Terminal/app focus support delegated to Tasklight.
+- Uses the published [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli) package when installed.
+
+---
 
 ## Requirements
 
 - Pi coding agent
 - Tasklight CLI
 
-`pi-tasklight` depends on [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli), so npm/git installs can bring the Tasklight CLI with the Pi package.
+Pi Tasklight depends on [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli), so npm/git package installs can bring the Tasklight CLI with the extension.
 
 Tasklight is resolved in this order:
 
@@ -30,37 +54,23 @@ Tasklight is resolved in this order:
 3. `tasklight` in `PATH`
 4. `npx -y @tasklight/cli` fallback
 
-Check Tasklight first:
+Check Tasklight directly:
 
 ```bash
 npx -y @tasklight/cli doctor
 ```
 
-For local development next to the Tasklight repository:
+---
 
-```bash
-cd ~/Work/tasklight
-go build -o bin/tasklight ./cmd/tasklight
+## Quick start from this repo
 
-cd ~/Work/pi-tasklight
-export TASKLIGHT_BIN="$HOME/Work/tasklight/bin/tasklight"
-```
-
-## Try without installing
-
-From this repository, install the package dependency once if you want to use the local `@tasklight/cli` instead of `PATH`/`npx`:
+Install dependencies once:
 
 ```bash
 npm install
 ```
 
-Then run:
-
-```bash
-pi -e ./extensions/tasklight.ts
-```
-
-Or load the package directory:
+Run Pi with the extension loaded:
 
 ```bash
 pi -e .
@@ -69,12 +79,20 @@ pi -e .
 Then inside Pi:
 
 ```text
-/tl run the tests and fix failures
+/tl
+/tl-test
+/tl run a tiny harmless check and tell me done
 ```
 
-## Install locally
+You can also load the extension file directly:
 
-For local-path installs from this checkout, run `npm install` once first unless `tasklight` is already in `PATH` or `TASKLIGHT_BIN` is set.
+```bash
+pi -e ./extensions/tasklight.ts
+```
+
+---
+
+## Install locally
 
 Install globally for your user:
 
@@ -94,20 +112,24 @@ After installing, start Pi normally and use:
 /tl your task here
 ```
 
+---
+
 ## Commands
 
-```text
-/tl            Show package info, doctor result, and contribution links
-/tl <prompt>   Run a Pi prompt and notify with a short summary when done
-/tl-on         Enable Tasklight notifications for every normal Pi prompt in this session
-/tl-off        Disable always-on mode
-/tl-toggle     Toggle always-on mode
-/tl-status     Show whether always-on mode is enabled
-/tl-doctor     Run tasklight doctor inside Pi
-/tl-test       Send a test Tasklight notification
-```
+| Command | Description |
+| --- | --- |
+| `/tl` | Show package info, Tasklight doctor status, and project links |
+| `/tl <prompt>` | Run a Pi prompt and notify with a short Tasklight summary when done |
+| `/tl-on` | Enable Tasklight notifications for every normal Pi prompt in this session |
+| `/tl-off` | Disable always-on mode |
+| `/tl-toggle` | Toggle always-on mode |
+| `/tl-status` | Show whether always-on mode is enabled |
+| `/tl-doctor` | Run `tasklight doctor` inside Pi |
+| `/tl-test` | Send a test Tasklight notification |
 
-`/tl` includes argument autocomplete suggestions for common prompts. Type `/tl ` and use Pi's normal autocomplete flow to pick a suggestion.
+`/tl` includes autocomplete suggestions for common prompts. Type `/tl ` and use Pi's normal autocomplete flow.
+
+---
 
 ## Always-on mode
 
@@ -134,7 +156,7 @@ pi -e ~/Work/pi-tasklight
 
 `/tl-on`, `/tl-off`, and `/tl-toggle` persist the setting in the current Pi session using a custom session entry. That metadata does not participate in LLM context.
 
-Always-on mode adds the same small per-turn summary instruction to normal prompts, so it has a tiny token cost on each enabled turn. It still does not make a second summarization model call.
+---
 
 ## Notification title and focus
 
@@ -144,16 +166,10 @@ Notification titles use this format when possible:
 Pi - <session name>
 ```
 
-If the Pi session has no name, `pi-tasklight` falls back to the detected terminal/application name, for example:
+If the Pi session has no name, Pi Tasklight falls back to the detected terminal/application name, for example:
 
 ```text
 Pi - iTerm2
-```
-
-If neither is available, the title is just:
-
-```text
-Pi
 ```
 
 Override the title suffix:
@@ -162,7 +178,7 @@ Override the title suffix:
 export PI_TASKLIGHT_TITLE_SUFFIX="My terminal"
 ```
 
-Override click-to-focus target:
+Override the click-to-focus target:
 
 ```bash
 export TASKLIGHT_ACTIVATE_APP="Terminal"
@@ -170,49 +186,97 @@ export TASKLIGHT_ACTIVATE_APP="iTerm2"
 export TASKLIGHT_ACTIVATE_APP="Visual Studio Code"
 ```
 
-On macOS, Tasklight works without external dependencies through `osascript`, but custom notification identity, custom icons, and click-to-focus work best today with:
+Focus behavior is handled by Tasklight itself. Pi Tasklight only calls the Tasklight CLI.
 
-```bash
-brew install terminal-notifier
-```
-
-Tasklight does not auto-install `terminal-notifier`; without it, Tasklight falls back to `osascript`.
-
-When `terminal-notifier` is available, Tasklight creates and registers a tiny local `Tasklight.app` helper under `~/Library/Application Support/Tasklight/`. Tasklight uses that bundle as the notification sender, so the left-side notification icon is Tasklight rather than `terminal-notifier`.
-
-A future Tasklight phase will replace this dependency with a tiny native macOS notification helper bundled with Tasklight itself.
-
-If Pi runs inside tmux, Tasklight can also attempt to return to the original tmux pane.
+---
 
 ## Environment variables
 
-```text
-TASKLIGHT_BIN                 Path to the tasklight binary. Defaults to tasklight in PATH.
-TASKLIGHT_ACTIVATE_APP        App name or bundle ID to focus when clicking notifications.
-TASKLIGHT_ICON                Override Tasklight's notification icon path.
-PI_TASKLIGHT_ALWAYS           Enable always-on mode by default: 1/true/yes/on.
-PI_TASKLIGHT_TITLE_SUFFIX     Override notification title suffix.
+| Variable | Description |
+| --- | --- |
+| `TASKLIGHT_BIN` | Path to a Tasklight binary. Overrides all other CLI resolution. |
+| `TASKLIGHT_ACTIVATE_APP` | App name or bundle ID to focus when clicking notifications. |
+| `TASKLIGHT_ICON` | Override Tasklight's notification icon path. |
+| `PI_TASKLIGHT_ALWAYS` | Enable always-on mode by default: `1`, `true`, `yes`, or `on`. |
+| `PI_TASKLIGHT_TITLE_SUFFIX` | Override notification title suffix. |
+
+---
+
+## Local Tasklight development
+
+If you are developing Tasklight and Pi Tasklight side-by-side:
+
+```bash
+cd ~/Work/tasklight
+go build -o bin/tasklight ./cmd/tasklight
+
+cd ~/Work/pi-tasklight
+export TASKLIGHT_BIN="$HOME/Work/tasklight/bin/tasklight"
+pi -e .
 ```
 
-## Design
+---
 
-`pi-tasklight` intentionally does not make Tasklight Pi-specific. Tasklight remains the generic notification CLI; this package is only the Pi integration layer.
+## How it works
 
-The `/tl` command adds a short per-turn instruction asking Pi to append a marker like:
+Pi Tasklight intentionally keeps Tasklight generic. Tasklight remains the notification CLI; this package is only the Pi integration layer.
+
+For `/tl` and always-on turns, the extension adds a small per-turn instruction asking Pi to append a hidden summary marker:
 
 ```text
 <TASKLIGHT_SUMMARY>Fixed failing auth test setup.</TASKLIGHT_SUMMARY>
 ```
 
-The extension extracts that text, removes the marker from the final assistant message, and sends it to Tasklight. If the model does not provide a marker, the extension falls back to a short deterministic summary from the final answer.
+The extension then:
 
-## Publish later
+1. extracts the summary,
+2. strips the marker from the visible assistant message,
+3. sends the summary through `tasklight notify`, and
+4. falls back to the first useful final-answer line if the marker is missing.
 
-This package is structured as a Pi package and can later be published independently through npm or git. Since `@tasklight/cli` is a dependency, npm/git package installs can install the Tasklight CLI automatically.
+---
 
-Future install examples:
+## Security note
+
+Pi extensions run with local user permissions. Only install Pi packages from sources you trust.
+
+Pi Tasklight executes the Tasklight CLI using your local environment and the configuration described above.
+
+---
+
+## Development
 
 ```bash
-pi install git:github.com/<owner>/pi-tasklight
+npm install
+npm test
+npm run fallow
+```
+
+Useful smoke checks:
+
+```bash
+PI_OFFLINE=1 pi -e . --no-session --no-tools -p "/tl"
+PI_OFFLINE=1 pi -e . --no-session --no-tools -p "/tl-doctor"
+```
+
+---
+
+## Publishing later
+
+This package is structured as a Pi package and can be published through npm.
+
+After npm publish:
+
+```bash
 pi install npm:@tasklight/pi-tasklight
+```
+
+The repository is currently private. Once it is public, add:
+
+- npm/version/download badges at the top of this README
+- public repository and issue links
+- optional git install instructions, for example:
+
+```bash
+pi install git:github.com/revazi/pi-tasklight
 ```
