@@ -19,12 +19,21 @@ It avoids a second summarization model call. For `/tl` and always-on turns, the 
 ## Requirements
 
 - Pi coding agent
-- Tasklight CLI installed in `PATH`, or `TASKLIGHT_BIN` set to the Tasklight binary
+- Tasklight CLI
+
+`pi-tasklight` depends on [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli), so npm/git installs can bring the Tasklight CLI with the Pi package.
+
+Tasklight is resolved in this order:
+
+1. `TASKLIGHT_BIN=/path/to/tasklight`
+2. installed `@tasklight/cli` package dependency
+3. `tasklight` in `PATH`
+4. `npx -y @tasklight/cli` fallback
 
 Check Tasklight first:
 
 ```bash
-tasklight doctor
+npx -y @tasklight/cli doctor
 ```
 
 For local development next to the Tasklight repository:
@@ -39,7 +48,13 @@ export TASKLIGHT_BIN="$HOME/Work/tasklight/bin/tasklight"
 
 ## Try without installing
 
-From this repository:
+From this repository, install the package dependency once if you want to use the local `@tasklight/cli` instead of `PATH`/`npx`:
+
+```bash
+npm install
+```
+
+Then run:
 
 ```bash
 pi -e ./extensions/tasklight.ts
@@ -58,6 +73,8 @@ Then inside Pi:
 ```
 
 ## Install locally
+
+For local-path installs from this checkout, run `npm install` once first unless `tasklight` is already in `PATH` or `TASKLIGHT_BIN` is set.
 
 Install globally for your user:
 
@@ -80,6 +97,7 @@ After installing, start Pi normally and use:
 ## Commands
 
 ```text
+/tl            Show package info, doctor result, and contribution links
 /tl <prompt>   Run a Pi prompt and notify with a short summary when done
 /tl-on         Enable Tasklight notifications for every normal Pi prompt in this session
 /tl-off        Disable always-on mode
@@ -190,7 +208,7 @@ The extension extracts that text, removes the marker from the final assistant me
 
 ## Publish later
 
-This package is structured as a Pi package and can later be published independently through npm or git.
+This package is structured as a Pi package and can later be published independently through npm or git. Since `@tasklight/cli` is a dependency, npm/git package installs can install the Tasklight CLI automatically.
 
 Future install examples:
 
