@@ -19,7 +19,7 @@
 		"format": "biome format --write .",
 		"check": "biome check ."
 	},
-	"files": ["README.md", "pi-tasklight.png", "extensions", "src"],
+	"files": ["README.md", "LICENSE", "CONTRIBUTING.md", "SECURITY.md", "pi-tasklight.png", "extensions", "src"],
 	"dependencies": {
 		"@tasklight/cli": "^0.1.0"
 	},

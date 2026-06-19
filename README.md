@@ -218,11 +218,25 @@ The notification title carries folder/session context; the notification message 
 
 ---
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 ## Security note
 
 Pi extensions run with local user permissions. Only install Pi packages from sources you trust.
 
 Pi Tasklight executes the Tasklight CLI using your local environment and the configuration described above.
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ---
 
