@@ -22,25 +22,11 @@ type TasklightExecutable = {
 	baseArgs: string[];
 };
 
-export async function sendTasklightNotification(options: NotifyOptions): Promise<{ ok: true } | { ok: false; error: string }> {
-	const args = [
-		"notify",
-		"--title",
-		options.title,
-		"--subtitle",
-		options.subtitle,
-		"--message",
-		options.message,
-	];
+type NotificationResult = { ok: true } | { ok: false; error: string };
 
-	const activateApp = detectActivateApp();
-	if (activateApp) {
-		args.push("--activate-app", activateApp);
-	}
-
-	const result = await runTasklightCommand(args, 5000);
-	if (result.code === 0) return { ok: true };
-	return { ok: false, error: (result.stderr || result.error || `exit code ${result.code}`).trim() };
+export async function sendTasklightNotification(options: NotifyOptions): Promise<NotificationResult> {
+	const result = await runTasklightCommand(buildNotifyArgs(options), 5000);
+	return notificationResult(result);
 }
 
 export async function runTasklightCommand(args: string[], timeout: number): Promise<TasklightCommandResult> {
@@ -62,16 +48,61 @@ export async function runTasklightCommand(args: string[], timeout: number): Prom
 
 function execTasklightFile(command: string, args: string[], timeout: number): Promise<TasklightCommandResult> {
 	return new Promise((resolve) => {
-		execFile(command, args, { timeout }, (error: any, stdout, stderr) => {
-			resolve({
-				code: typeof error?.code === "number" ? error.code : error ? 1 : 0,
-				stdout: stdout?.toString() ?? "",
-				stderr: stderr?.toString() ?? "",
-				error: error?.message,
-				errorCode: error?.code,
-			});
+		execFile(command, args, { timeout }, (error, stdout, stderr) => {
+			resolve(commandResultFromExec(error, stdout, stderr));
 		});
 	});
+}
+
+function buildNotifyArgs(options: NotifyOptions): string[] {
+	const args = ["notify", "--title", options.title, "--subtitle", options.subtitle, "--message", options.message];
+	appendOptionalFlag(args, "--activate-app", detectActivateApp());
+	return args;
+}
+
+function appendOptionalFlag(args: string[], flag: string, value: string | undefined): void {
+	if (value) args.push(flag, value);
+}
+
+function notificationResult(result: TasklightCommandResult): NotificationResult {
+	if (result.code === 0) return { ok: true };
+	return { ok: false, error: tasklightError(result) };
+}
+
+function tasklightError(result: TasklightCommandResult): string {
+	return (result.stderr || result.error || `exit code ${result.code}`).trim();
+}
+
+function commandResultFromExec(error: unknown, stdout: unknown, stderr: unknown): TasklightCommandResult {
+	return {
+		code: exitCodeFromExecError(error),
+		stdout: execOutputText(stdout),
+		stderr: execOutputText(stderr),
+		error: execErrorMessage(error),
+		errorCode: execErrorCode(error),
+	};
+}
+
+function exitCodeFromExecError(error: unknown): number {
+	const code = execErrorCode(error);
+	if (!error) return 0;
+	return typeof code === "number" ? code : 1;
+}
+
+function execErrorMessage(error: unknown): string | undefined {
+	return isErrorLike(error) && typeof error.message === "string" ? error.message : undefined;
+}
+
+function execErrorCode(error: unknown): string | number | undefined {
+	return isErrorLike(error) && (typeof error.code === "string" || typeof error.code === "number") ? error.code : undefined;
+}
+
+function isErrorLike(error: unknown): error is { code?: unknown; message?: unknown } {
+	return typeof error === "object" && error !== null;
+}
+
+function execOutputText(value: unknown): string {
+	return value?.toString() ?? "";
 }
 
 function tasklightDependencyExecutable(): TasklightExecutable | undefined {

@@ -1,48 +1,46 @@
 {
-  "name": "@tasklight/pi-tasklight",
-  "version": "0.1.0",
-  "description": "Pi extension for Tasklight notifications",
-  "author": "Revaz Zakalashvili",
-  "homepage": "https://github.com/revazi/pi-tasklight#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/revazi/pi-tasklight.git"
-  },
-  "bugs": {
-    "url": "https://github.com/revazi/pi-tasklight/issues"
-  },
-  "keywords": [
-    "pi-package",
-    "pi-extension",
-    "tasklight",
-    "notifications"
-  ],
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "test": "vitest run",
-    "fallow": "fallow --production"
-  },
-  "files": [
-    "README.md",
-    "extensions",
-    "src"
-  ],
-  "dependencies": {
-    "@tasklight/cli": "^0.1.0"
-  },
-  "pi": {
-    "extensions": [
-      "./extensions/tasklight.ts"
-    ]
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
-  },
-  "devDependencies": {
-    "fallow": "^2.99.0",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
-  }
+	"name": "@tasklight/pi-tasklight",
+	"version": "0.1.0",
+	"description": "Pi extension for Tasklight notifications",
+	"author": "Revaz Zakalashvili",
+	"homepage": "https://github.com/revazi/pi-tasklight#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/revazi/pi-tasklight.git"
+	},
+	"bugs": {
+		"url": "https://github.com/revazi/pi-tasklight/issues"
+	},
+	"keywords": ["pi-package", "pi-extension", "tasklight", "notifications"],
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"test": "vitest run",
+		"format": "biome format --write .",
+		"check": "biome check ."
+	},
+	"files": ["README.md", "extensions", "src"],
+	"dependencies": {
+		"@tasklight/cli": "^0.1.0"
+	},
+	"pi": {
+		"extensions": ["./extensions/tasklight.ts"]
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "*",
+		"@earendil-works/pi-tui": "*"
+	},
+	"peerDependenciesMeta": {
+		"@earendil-works/pi-coding-agent": {
+			"optional": true
+		},
+		"@earendil-works/pi-tui": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.9"
+	}
 }

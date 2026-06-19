@@ -12,7 +12,7 @@ describe("session state helpers", () => {
 		expect(parseBooleanEnv(undefined)).toBeUndefined();
 	});
 
-	it("uses the latest matching always-on session entry", () => {
+	it("uses the latest matching normal-prompt notification entry", () => {
 		const entries = [
 			{ type: "custom", customType: "pi-tasklight", data: { alwaysEnabled: false } },
 			{ type: "custom", customType: "other", data: { alwaysEnabled: true } },

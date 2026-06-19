@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	doctorDisplayFromResult,
-	formatCommandOutput,
-	tasklightInfoPlainLines,
-	type TasklightPackageInfo,
-} from "../src/doctor.ts";
+import { type TasklightPackageInfo, doctorDisplayFromResult, formatCommandOutput, tasklightInfoPlainLines } from "../src/doctor.ts";
 
 const packageInfo: TasklightPackageInfo = {
 	name: "@tasklight/pi-tasklight",

@@ -1,9 +1,49 @@
 import { matchesKey, truncateToWidth, visibleWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
-import { PACKAGE_INFO, PACKAGE_ISSUES_URL, PACKAGE_NAME, PACKAGE_NPM_URL, PACKAGE_REPO_URL, TASKLIGHT_DOCTOR_TIMEOUT_MS } from "./constants.ts";
-import { DEFAULT_DOCTOR_OUTPUT_MAX_LINES, doctorDisplayFromResult, tasklightInfoPlainLines, type DoctorDisplay } from "./doctor.ts";
+import {
+	PACKAGE_INFO,
+	PACKAGE_ISSUES_URL,
+	PACKAGE_NAME,
+	PACKAGE_NPM_URL,
+	PACKAGE_REPO_URL,
+	TASKLIGHT_DOCTOR_TIMEOUT_MS,
+} from "./constants.ts";
+import { DEFAULT_DOCTOR_OUTPUT_MAX_LINES, type DoctorDisplay, doctorDisplayFromResult, tasklightInfoPlainLines } from "./doctor.ts";
 import { runTasklightCommand } from "./tasklight-cli.ts";
 
-export async function showTasklightInfo(ctx: any): Promise<void> {
+const ansi = (code: number, text: string) => `\x1b[38;5;${code}m${text}\x1b[39m`;
+const purple = (text: string) => ansi(141, text);
+const violet = (text: string) => ansi(99, text);
+const pink = (text: string) => ansi(213, text);
+const cyan = (text: string) => ansi(81, text);
+const amber = (text: string) => ansi(215, text);
+const CLOSE_TEXT_KEYS = new Set(["q", "Q"]);
+
+type OverlayTheme = {
+	bold(text: string): string;
+	fg(color: string, text: string): string;
+};
+
+type OverlayTui = {
+	requestRender(): void;
+};
+
+type OverlayContext = {
+	mode?: string;
+	hasUI?: boolean;
+	ui: {
+		custom(
+			factory: (tui: OverlayTui, theme: OverlayTheme, keybindings: unknown, done: () => void) => TasklightInfoOverlay,
+			options: {
+				overlay: boolean;
+				overlayOptions: Record<string, unknown>;
+			},
+		): Promise<void>;
+		notify(message: string, kind: "info" | "warning" | "error"): void;
+		setWidget(id: string, lines: string[], options: { placement: "belowEditor" }): void;
+	};
+};
+
+export async function showTasklightInfo(ctx: OverlayContext): Promise<void> {
 	if (ctx.mode === "tui" && ctx.hasUI) {
 		await showTasklightInfoOverlay(ctx);
 		return;
@@ -19,9 +59,9 @@ export async function showTasklightInfo(ctx: any): Promise<void> {
 	}
 }
 
-async function showTasklightInfoOverlay(ctx: any): Promise<void> {
+async function showTasklightInfoOverlay(ctx: OverlayContext): Promise<void> {
 	await ctx.ui.custom(
-		(tui: any, theme: any, _keybindings: any, done: () => void) => {
+		(tui, theme, _keybindings, done) => {
 			const overlay = new TasklightInfoOverlay(theme, done);
 
 			void runTasklightCommand(["doctor"], TASKLIGHT_DOCTOR_TIMEOUT_MS)
@@ -58,7 +98,7 @@ class TasklightInfoOverlay {
 	};
 
 	constructor(
-		private readonly theme: any,
+		private readonly theme: OverlayTheme,
 		private readonly done: () => void,
 	) {}
 
@@ -68,30 +108,24 @@ class TasklightInfoOverlay {
 	}
 
 	handleInput(data: string): void {
-		if (isCloseKey(data)) {
-			this.done();
-		}
+		if (isCloseKey(data)) this.done();
 	}
 
 	render(width: number): string[] {
-		if (width < 4) return [truncateToWidth("Tasklight for Pi", width)];
+		if (width < 4) return [truncateToWidth("Pi Tasklight", width)];
 
 		const rows = new OverlayRows(width, this.theme);
-		rows.borderTop();
-		rows.row(` ${this.theme.fg("accent", this.theme.bold("Tasklight for Pi"))}`);
-		rows.row(` ${this.theme.fg("dim", PACKAGE_NAME)}`);
-		rows.row();
-		rows.wrapped("Run Pi tasks and get a desktop notification with a short outcome summary when Pi finishes. No second summarization model call is needed.");
-		rows.row();
+		rows.topBorder(buildHeaderTitle(this.doctorDisplay, this.theme));
+		rows.wrapped("Tasklight notifications for Pi coding-agent sessions.");
+		rows.frame(helpLine(this.theme));
+		rows.separator();
 		renderUsage(rows, this.theme);
-		rows.row();
+		rows.frame();
 		renderDoctor(rows, this.theme, this.doctorDisplay);
-		rows.row();
+		rows.separator();
 		renderLinks(rows, this.theme);
-		rows.row();
-		rows.wrapped(this.theme.fg("success", "Contributions welcome — open issues, suggest improvements, or send PRs."));
-		rows.row(` ${this.theme.fg("dim", "Enter / Esc / q to close")}`);
-		rows.borderBottom();
+		rows.frame(`${pink("Contribute")} ${this.theme.fg("muted", "Ideas, issues, and PRs are welcome once the repo is public.")}`);
+		rows.bottomBorder();
 		return rows.lines;
 	}
 
@@ -103,53 +137,75 @@ class OverlayRows {
 	readonly lines: string[] = [];
 	private readonly innerWidth: number;
 
-	constructor(width: number, private readonly theme: any) {
-		this.innerWidth = Math.max(1, width - 2);
+	constructor(
+		private readonly width: number,
+		private readonly theme: OverlayTheme,
+	) {
+		this.innerWidth = Math.max(0, width - 4);
 	}
 
-	borderTop(): void {
-		this.lines.push(this.border(`╭${"─".repeat(this.innerWidth)}╮`));
+	topBorder(title: string): void {
+		const safeTitle = truncateToWidth(title, Math.max(0, this.width - 2));
+		const fill = Math.max(0, this.width - visibleWidth(safeTitle) - 2);
+		this.lines.push(`${purple("╭")}${safeTitle}${purple(`${"─".repeat(fill)}╮`)}`);
 	}
 
-	borderBottom(): void {
-		this.lines.push(this.border(`╰${"─".repeat(this.innerWidth)}╯`));
+	separator(): void {
+		this.lines.push(purple(`├${"─".repeat(Math.max(0, this.width - 2))}┤`));
 	}
 
-	row(content = ""): void {
-		this.lines.push(`${this.border("│")}${padVisible(truncateToWidth(content, this.innerWidth), this.innerWidth)}${this.border("│")}`);
+	bottomBorder(): void {
+		this.lines.push(purple(`╰${"─".repeat(Math.max(0, this.width - 2))}╯`));
 	}
 
-	wrapped(content: string, prefix = " "): void {
+	frame(content = ""): void {
+		const text = truncateToWidth(content, this.innerWidth);
+		const padding = " ".repeat(Math.max(0, this.innerWidth - visibleWidth(text)));
+		this.lines.push(purple("│ ") + text + padding + purple(" │"));
+	}
+
+	wrapped(content: string, prefix = "  "): void {
 		const wrapWidth = Math.max(1, this.innerWidth - visibleWidth(prefix));
 		for (const line of wrapTextWithAnsi(content, wrapWidth)) {
-			this.row(`${prefix}${line}`);
+			this.frame(`${prefix}${line}`);
 		}
 	}
-
-	private border(value: string): string {
-		return this.theme.fg("border", value);
-	}
 }
 
-function renderUsage(rows: OverlayRows, theme: any): void {
-	rows.row(` ${theme.fg("accent", "Usage")}`);
-	rows.row("   /tl <prompt>   Run one Tasklight-notified Pi task");
-	rows.row("   /tl-on         Notify after every normal Pi prompt");
-	rows.row("   /tl-doctor     Run Tasklight diagnostics");
+function buildHeaderTitle(doctorDisplay: DoctorDisplay, theme: OverlayTheme): string {
+	const status = headerStatus(doctorDisplay.status);
+	return `${purple(" ✦ ")}${theme.fg(status.themeColor, theme.bold("Pi Tasklight"))}${theme.fg("dim", " · ")}${pill(status.label, status.pillColor)} `;
 }
 
-function renderDoctor(rows: OverlayRows, theme: any, doctorDisplay: DoctorDisplay): void {
+function headerStatus(status: DoctorDisplay["status"]): {
+	label: string;
+	pillColor: (value: string) => string;
+	themeColor: "success" | "warning" | "dim";
+} {
+	if (status === "success") return { label: "ready", pillColor: cyan, themeColor: "success" };
+	if (status === "warning") return { label: "issues", pillColor: pink, themeColor: "warning" };
+	return { label: "checking", pillColor: amber, themeColor: "dim" };
+}
+
+function renderUsage(rows: OverlayRows, theme: OverlayTheme): void {
+	rows.frame(`  ${violet("●")} ${theme.fg("accent", theme.bold("Usage"))}`);
+	rows.frame(`    ${pill("/tl <prompt>", violet)} ${theme.fg("muted", "run one Tasklight-notified Pi task")}`);
+	rows.frame(`    ${pill("/tl-toggle", violet)}   ${theme.fg("muted", "toggle notifications for normal prompts")}`);
+	rows.frame(`    ${pill("/tl-doctor", violet)}   ${theme.fg("muted", "run Tasklight diagnostics")}`);
+}
+
+function renderDoctor(rows: OverlayRows, theme: OverlayTheme, doctorDisplay: DoctorDisplay): void {
 	const { color, icon } = doctorStatusStyle(doctorDisplay.status);
-	rows.row(` ${theme.fg("accent", "Doctor")}: ${theme.fg(color, `${icon} ${doctorDisplay.headline}`)}`);
+	rows.frame(`  ${violet("●")} ${theme.fg("accent", theme.bold("Doctor"))} ${theme.fg(color, `${icon} ${doctorDisplay.headline}`)}`);
 	for (const line of doctorDisplay.lines.slice(0, DEFAULT_DOCTOR_OUTPUT_MAX_LINES)) {
-		rows.row(`   ${theme.fg("dim", line.trim())}`);
+		rows.frame(`    ${theme.fg("dim", line.trim())}`);
 	}
 }
 
-function renderLinks(rows: OverlayRows, theme: any): void {
-	rows.row(` ${theme.fg("accent", "Repository")}: ${PACKAGE_REPO_URL}`);
-	rows.row(` ${theme.fg("accent", "Issues")}:     ${PACKAGE_ISSUES_URL}`);
-	rows.row(` ${theme.fg("accent", "NPM")}:        ${PACKAGE_NPM_URL}`);
+function renderLinks(rows: OverlayRows, theme: OverlayTheme): void {
+	rows.frame(`${violet("Repository")} ${theme.fg("muted", PACKAGE_REPO_URL)}`);
+	rows.frame(`${cyan("Issues")}     ${theme.fg("muted", PACKAGE_ISSUES_URL)}`);
+	rows.frame(`${amber("NPM")}        ${theme.fg("muted", PACKAGE_NPM_URL)}`);
 }
 
 function doctorStatusStyle(status: DoctorDisplay["status"]): { color: "success" | "warning" | "dim"; icon: string } {
@@ -158,12 +214,16 @@ function doctorStatusStyle(status: DoctorDisplay["status"]): { color: "success" 
 	return { color: "dim", icon: "…" };
 }
 
-function isCloseKey(data: string): boolean {
-	return matchesKey(data, "escape") || matchesKey(data, "return") || matchesKey(data, "enter") || data === "q" || data === "Q";
+function helpLine(theme: OverlayTheme): string {
+	return `${pill("Enter", violet)} ${theme.fg("muted", "close")}  ${pill("Esc", violet)} ${theme.fg("muted", "close")}  ${pill("q", violet)} ${theme.fg("muted", "close")}`;
 }
 
-function padVisible(value: string, width: number): string {
-	return `${value}${" ".repeat(Math.max(0, width - visibleWidth(value)))}`;
+function pill(text: string, color: (value: string) => string): string {
+	return color(` ${text} `);
+}
+
+function isCloseKey(data: string): boolean {
+	return CLOSE_TEXT_KEYS.has(data) || (["escape", "return", "enter"] as const).some((key) => matchesKey(data, key));
 }
 
 function errorMessage(error: unknown): string {

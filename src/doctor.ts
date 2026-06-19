@@ -21,13 +21,13 @@ export type TasklightPackageInfo = {
 	npmUrl: string;
 };
 
-export function doctorDisplayFromResult(
-	result: TasklightCommandResult,
-	maxLines = DEFAULT_DOCTOR_OUTPUT_MAX_LINES,
-): DoctorDisplay {
+export function doctorDisplayFromResult(result: TasklightCommandResult, maxLines = DEFAULT_DOCTOR_OUTPUT_MAX_LINES): DoctorDisplay {
 	const output = formatCommandOutput(result).trim();
 	const lines = output
-		? output.split("\n").map((line) => line.trimEnd()).filter((line) => line.trim())
+		? output
+				.split("\n")
+				.map((line) => line.trimEnd())
+				.filter((line) => line.trim())
 		: ["tasklight doctor produced no output"];
 	const resultLine = [...lines].reverse().find((line) => line.toLowerCase().includes("result")) ?? lines[lines.length - 1];
 
@@ -48,14 +48,14 @@ export function formatCommandOutput(result: TasklightCommandResult): string {
 
 export function tasklightInfoPlainLines(doctorDisplay: DoctorDisplay, packageInfo: TasklightPackageInfo): string[] {
 	return [
-		"Tasklight for Pi",
+		"Pi Tasklight",
 		packageInfo.name,
 		"",
-		"Run Pi tasks and get a desktop notification with a short outcome summary when Pi finishes.",
+		"Tasklight notifications for Pi coding-agent sessions.",
 		"",
 		"Usage:",
 		"  /tl <prompt>   Run one Tasklight-notified Pi task",
-		"  /tl-on         Notify after every normal Pi prompt",
+		"  /tl-toggle     Toggle notifications for normal prompts",
 		"  /tl-doctor     Run Tasklight diagnostics",
 		"",
 		`Doctor: ${doctorDisplay.headline}`,
