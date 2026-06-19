@@ -24,7 +24,8 @@
 		"@tasklight/cli": "^0.1.0"
 	},
 	"pi": {
-		"extensions": ["./extensions/tasklight.ts"]
+		"extensions": ["./extensions/tasklight.ts"],
+		"image": "https://raw.githubusercontent.com/revazi/pi-tasklight/main/pi-tasklight.png"
 	},
 	"peerDependencies": {
 		"@earendil-works/pi-coding-agent": "*",
