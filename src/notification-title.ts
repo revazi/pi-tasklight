@@ -1,7 +1,10 @@
-export type Env = Record<string, string | undefined>;
+type Env = Record<string, string | undefined>;
+
+const TITLE_SEPARATOR = " · ";
+const MAX_TITLE_PART_LENGTH = 80;
 
 export function notificationTitle(sessionName?: string, env: Env = process.env): string {
-	return uniqueNonEmpty(["Pi", titleContext(env), sessionName].map(sanitizeTitlePart)).join(" · ");
+	return uniqueNonEmpty(["Pi", titleContext(env), sessionName].map(sanitizeTitlePart)).join(TITLE_SEPARATOR);
 }
 
 function titleContext(env: Env): string {
@@ -17,7 +20,7 @@ function directoryName(path: string | undefined): string | undefined {
 }
 
 function sanitizeTitlePart(value: string | undefined): string {
-	return (value ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
+	return (value ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE_PART_LENGTH);
 }
 
 function uniqueNonEmpty(values: string[]): string[] {
@@ -29,10 +32,4 @@ function uniqueNonEmpty(values: string[]): string[] {
 		result.push(value);
 	}
 	return result;
-}
-
-export function detectActivateApp(env: Env = process.env): string | undefined {
-	if (env.TASKLIGHT_ACTIVATE_APP) return env.TASKLIGHT_ACTIVATE_APP;
-	if (env.__CFBundleIdentifier) return env.__CFBundleIdentifier;
-	return undefined;
 }

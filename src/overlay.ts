@@ -191,7 +191,6 @@ function renderUsage(rows: OverlayRows, theme: OverlayTheme): void {
 	rows.frame(`  ${violet("●")} ${theme.fg("accent", theme.bold("Usage"))}`);
 	rows.frame(`    ${pill("/tl <prompt>", violet)} ${theme.fg("muted", "run one Tasklight-notified Pi task")}`);
 	rows.frame(`    ${pill("/tl-toggle", violet)}   ${theme.fg("muted", "toggle notifications for normal prompts")}`);
-	rows.frame(`    ${pill("/tl-doctor", violet)}   ${theme.fg("muted", "run Tasklight diagnostics")}`);
 }
 
 function renderDoctor(rows: OverlayRows, theme: OverlayTheme, doctorDisplay: DoctorDisplay): void {

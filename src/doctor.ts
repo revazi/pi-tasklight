@@ -56,7 +56,6 @@ export function tasklightInfoPlainLines(doctorDisplay: DoctorDisplay, packageInf
 		"Usage:",
 		"  /tl <prompt>   Run one Tasklight-notified Pi task",
 		"  /tl-toggle     Toggle notifications for normal prompts",
-		"  /tl-doctor     Run Tasklight diagnostics",
 		"",
 		`Doctor: ${doctorDisplay.headline}`,
 		...doctorDisplay.lines.map((line) => `  ${line}`),

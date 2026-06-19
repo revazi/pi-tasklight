@@ -1,12 +1,11 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { CUSTOM_TYPE, TASKLIGHT_DOCTOR_TIMEOUT_MS } from "../src/constants.ts";
-import { formatCommandOutput } from "../src/doctor.ts";
+import { CUSTOM_TYPE } from "../src/constants.ts";
+import { notificationTitle } from "../src/notification-title.ts";
 import { showTasklightInfo } from "../src/overlay.ts";
 import { latestAlwaysEnabled, parseBooleanEnv } from "../src/session-state.ts";
 import { statusFromMessages } from "../src/status.ts";
-import { runTasklightCommand, sendTasklightNotification } from "../src/tasklight-cli.ts";
+import { sendTasklightNotification } from "../src/tasklight-cli.ts";
 import { formatDuration } from "../src/time.ts";
-import { notificationTitle } from "../src/title.ts";
 
 const DEFAULT_ALWAYS_ENABLED = parseBooleanEnv(process.env.PI_TASKLIGHT_ALWAYS) ?? false;
 const MAX_NOTIFICATION_MESSAGE_LENGTH = 140;
@@ -53,13 +52,6 @@ type NotificationKind = "info" | "warning" | "error";
 type NotifyContext = {
 	ui: {
 		notify(message: string, kind: NotificationKind): void;
-	};
-};
-
-type DoctorContext = NotifyContext & {
-	hasUI?: boolean;
-	ui: NotifyContext["ui"] & {
-		setWidget(id: string, lines: string[], options: { placement: "belowEditor" }): void;
 	};
 };
 
@@ -119,20 +111,6 @@ export default function tasklightExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerCommand("tl-status", {
-		description: "Show Tasklight notification settings",
-		handler: async (_args, ctx) => {
-			ctx.ui.notify(settingsMessage(alwaysEnabled), "info");
-		},
-	});
-
-	pi.registerCommand("tl-doctor", {
-		description: "Run tasklight doctor and show diagnostics",
-		handler: async (_args, ctx) => {
-			await showDoctorResult(ctx);
-		},
-	});
-
 	pi.registerCommand("tl-test", {
 		description: "Send a test Tasklight notification",
 		handler: async (_args, ctx) => {
@@ -165,21 +143,6 @@ export default function tasklightExtension(pi: ExtensionAPI) {
 	pi.on("session_shutdown", async () => {
 		pendingTask = undefined;
 	});
-}
-
-async function showDoctorResult(ctx: DoctorContext): Promise<void> {
-	const result = await runTasklightCommand(["doctor"], TASKLIGHT_DOCTOR_TIMEOUT_MS);
-	const output = formatCommandOutput(result).trim() || "tasklight doctor produced no output";
-	showDoctorOutput(ctx, result.code, output);
-}
-
-function showDoctorOutput(ctx: DoctorContext, code: number, output: string): void {
-	if (!ctx.hasUI) {
-		console.log(output);
-		return;
-	}
-	ctx.ui.setWidget("pi-tasklight-doctor", output.split("\n").slice(0, 40), { placement: "belowEditor" });
-	ctx.ui.notify(code === 0 ? "Tasklight doctor passed" : "Tasklight doctor found issues", code === 0 ? "info" : "warning");
 }
 
 function createPendingTask(prompt: string): PendingTask {
@@ -232,10 +195,6 @@ function warnOnceOnNotificationFailure(result: TasklightNotificationResult, warn
 	if (result.ok || warned) return warned;
 	ctx.ui.notify(`Tasklight notification failed: ${result.error}`, "warning");
 	return true;
-}
-
-function settingsMessage(alwaysEnabled: boolean): string {
-	return `Tasklight normal-prompt notifications are ${settingState(alwaysEnabled)}`;
 }
 
 function settingState(value: boolean): "enabled" | "disabled" {

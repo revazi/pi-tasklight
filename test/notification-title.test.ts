@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { detectActivateApp, notificationTitle } from "../src/title.ts";
+import { notificationTitle } from "../src/notification-title.ts";
 
-describe("title helpers", () => {
+describe("notification title helpers", () => {
 	it("uses Pi, directory, and session name for notification titles", () => {
 		expect(notificationTitle("Auth cleanup", { PWD: "/work/pi-tasklight" })).toBe("Pi · pi-tasklight · Auth cleanup");
 	});
@@ -23,11 +23,5 @@ describe("title helpers", () => {
 
 	it("falls back from an empty title override and handles Windows-style paths", () => {
 		expect(notificationTitle(undefined, { PI_TASKLIGHT_TITLE_SUFFIX: " ", PWD: "C:\\work\\repo" })).toBe("Pi · repo");
-	});
-
-	it("detects the activation target only by override or bundle id", () => {
-		expect(detectActivateApp({ TASKLIGHT_ACTIVATE_APP: "My App" })).toBe("My App");
-		expect(detectActivateApp({ __CFBundleIdentifier: "com.example.App" })).toBe("com.example.App");
-		expect(detectActivateApp({})).toBeUndefined();
 	});
 });

@@ -31,10 +31,10 @@ No summarization model call is used. Pi Tasklight sends the original prompt as t
 ## Features
 
 - `/tl <prompt>` runs a one-off Pi task and notifies when it finishes.
-- `/tl` opens a package info overlay with Tasklight doctor status and project links.
+- `/tl` opens the Pi Tasklight status view with Tasklight doctor results and project links.
 - Optional notifications for normal Pi prompts via `/tl-toggle`.
 - Notifications without a second LLM call.
-- `tasklight doctor` and test notification commands inside Pi.
+- Tasklight doctor status in `/tl` and a test notification command inside Pi.
 - Context-aware notification titles like `Pi · <directory/repo> · <session>`.
 - Click-to-focus support delegated to Tasklight.
 - Uses the published [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli) package when installed.
@@ -55,7 +55,7 @@ Tasklight is resolved in this order:
 3. `tasklight` in `PATH`
 4. `npx -y @tasklight/cli` fallback
 
-Check Tasklight directly:
+Inside Pi, run bare `/tl` to see Tasklight status and doctor results. You can also check Tasklight directly from a shell:
 
 ```bash
 npx -y @tasklight/cli doctor
@@ -119,14 +119,12 @@ After installing, start Pi normally and use:
 
 | Command | Description |
 | --- | --- |
-| `/tl` | Show package info, Tasklight doctor status, and project links |
+| `/tl` | Show Pi Tasklight status, Tasklight doctor results, and project links |
 | `/tl <prompt>` | Run a Pi prompt and notify when done |
 | `/tl-toggle` | Toggle notifications for normal Pi prompts |
-| `/tl-status` | Show Tasklight notification settings |
-| `/tl-doctor` | Run `tasklight doctor` inside Pi |
 | `/tl-test` | Send a test Tasklight notification |
 
-`/tl` includes autocomplete suggestions for common prompts. Type `/tl ` and use Pi's normal autocomplete flow.
+Use bare `/tl` whenever you want to check Tasklight status or doctor output. `/tl <prompt>` includes autocomplete suggestions for common prompts; type `/tl ` and use Pi's normal autocomplete flow.
 
 ---
 
@@ -237,7 +235,6 @@ Useful smoke checks:
 
 ```bash
 PI_OFFLINE=1 pi -e . --no-session --no-tools -p "/tl"
-PI_OFFLINE=1 pi -e . --no-session --no-tools -p "/tl-doctor"
 ```
 
 ---

@@ -2,8 +2,8 @@ import { execFile } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
+import { detectActivateApp } from "./activate-app.ts";
 import type { TasklightCommandResult } from "./doctor.ts";
-import { detectActivateApp } from "./title.ts";
 
 const requireFromTasklightCli = createRequire(import.meta.url);
 
