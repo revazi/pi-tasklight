@@ -1,11 +1,3 @@
-<!--
-Badges to add after npm publish:
-
-[![npm version](https://img.shields.io/npm/v/@tasklight/pi-tasklight.svg)](https://www.npmjs.com/package/@tasklight/pi-tasklight)
-[![npm downloads](https://img.shields.io/npm/dm/@tasklight/pi-tasklight.svg)](https://www.npmjs.com/package/@tasklight/pi-tasklight)
-[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
--->
-
 # Pi Tasklight
 
 Tasklight notifications for [Pi](https://github.com/earendil-works/pi) coding-agent sessions.
@@ -38,7 +30,6 @@ No summarization model call is used. Pi Tasklight sends the original prompt as t
 - Notifications without a second LLM call.
 - Tasklight doctor status in `/tl` and a test notification command inside Pi.
 - Context-aware notification titles like `Pi · <directory/repo> · <session>`.
-- Click-to-focus support delegated to Tasklight.
 - Uses the published [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli) package when installed.
 
 ---
@@ -61,6 +52,30 @@ Inside Pi, run bare `/tl` to see Tasklight status and doctor results. You can al
 
 ```bash
 npx -y @tasklight/cli doctor
+```
+
+---
+
+## Install from npm
+
+Install Pi Tasklight:
+
+```bash
+pi install npm:@tasklight/pi-tasklight
+```
+
+Or try it for one Pi run without installing:
+
+```bash
+pi -e npm:@tasklight/pi-tasklight
+```
+
+Then inside Pi:
+
+```text
+/tl
+/tl-test
+/tl run a tiny harmless check and tell me done
 ```
 
 ---
@@ -255,21 +270,15 @@ PI_OFFLINE=1 pi -e . --no-session --no-tools -p "/tl"
 
 ---
 
-## Publishing later
+## Package
 
-This package is structured as a Pi package and can be published through npm.
-
-After npm publish:
+Pi Tasklight is published as [`@tasklight/pi-tasklight`](https://www.npmjs.com/package/@tasklight/pi-tasklight) and can be installed from npm:
 
 ```bash
 pi install npm:@tasklight/pi-tasklight
 ```
 
-The repository is currently private. Once it is public, add:
-
-- npm/version/download badges at the top of this README
-- public repository and issue links
-- optional git install instructions, for example:
+You can also install directly from GitHub:
 
 ```bash
 pi install git:github.com/revazi/pi-tasklight
