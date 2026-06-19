@@ -10,6 +10,8 @@ Badges to add after npm publish:
 
 Tasklight notifications for [Pi](https://github.com/earendil-works/pi) coding-agent sessions.
 
+![Pi Tasklight screenshot](./pi-tasklight.png)
+
 Use Pi Tasklight when you want Pi to work in the background and notify you when it finishes.
 
 ```text
