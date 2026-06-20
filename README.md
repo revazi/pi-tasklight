@@ -1,6 +1,16 @@
 # Pi Tasklight
 
+[![npm version](https://img.shields.io/npm/v/@tasklight/pi-tasklight.svg)](https://www.npmjs.com/package/@tasklight/pi-tasklight)
+[![npm downloads](https://img.shields.io/npm/dm/@tasklight/pi-tasklight.svg)](https://www.npmjs.com/package/@tasklight/pi-tasklight)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Tasklight notifications for [Pi](https://github.com/earendil-works/pi) coding-agent sessions.
+
+Package: [`@tasklight/pi-tasklight`](https://www.npmjs.com/package/@tasklight/pi-tasklight)
+
+```bash
+pi install npm:@tasklight/pi-tasklight
+```
 
 ![Pi Tasklight screenshot](./pi-tasklight.png)
 
