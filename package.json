@@ -21,7 +21,7 @@
 	},
 	"files": ["README.md", "LICENSE", "CONTRIBUTING.md", "SECURITY.md", "pi-tasklight.png", "extensions", "src"],
 	"dependencies": {
-		"@tasklight/cli": "^0.1.0"
+		"@tasklight/cli": "^0.1.1"
 	},
 	"pi": {
 		"extensions": ["./extensions/tasklight.ts"],

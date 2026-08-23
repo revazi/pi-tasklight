@@ -6,6 +6,8 @@
 
 Tasklight notifications for [Pi](https://github.com/earendil-works/pi) coding-agent sessions.
 
+This repository is the **Pi-specific integration package**. The generic Tasklight CLI lives separately at [`revazi/tasklight`](https://github.com/revazi/tasklight) and owns command running, desktop notification providers, npm CLI packaging, and terminal/tmux focus behavior.
+
 Package: [`@tasklight/pi-tasklight`](https://www.npmjs.com/package/@tasklight/pi-tasklight)
 
 ```bash
@@ -50,6 +52,11 @@ No summarization model call is used. Pi Tasklight sends the original prompt as t
 - Tasklight CLI
 
 Pi Tasklight depends on [`@tasklight/cli`](https://www.npmjs.com/package/@tasklight/cli), so npm/git package installs can bring the Tasklight CLI with the extension.
+
+Use the issue tracker that owns the behavior you are reporting:
+
+- Pi slash commands, prompt notification toggles, or extension behavior: <https://github.com/revazi/pi-tasklight/issues>
+- Tasklight CLI notifications, macOS/Linux providers, npm CLI package, or click-to-focus behavior: <https://github.com/revazi/tasklight/issues>
 
 Tasklight is resolved in this order:
 
@@ -236,6 +243,8 @@ pi -e .
 ## How it works
 
 Pi Tasklight intentionally keeps Tasklight generic. Tasklight remains the notification CLI; this package is only the Pi integration layer.
+
+This package should not implement macOS/Linux notification providers, tmux focus logic, or Tasklight CLI packaging. Those belong in `revazi/tasklight`. This package should only resolve and invoke the Tasklight CLI from Pi extension code.
 
 For `/tl` and toggled normal-prompt notifications, Pi Tasklight tracks the prompt locally and sends a notification when Pi finishes. It does not add extra prompt instructions, parse the final answer, or make a second model call.
 
