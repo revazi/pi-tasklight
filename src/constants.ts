@@ -1,7 +1,7 @@
 import type { TasklightPackageInfo } from "./doctor.ts";
 
 export const CUSTOM_TYPE = "pi-tasklight";
-export const PACKAGE_NAME = "@tasklight/pi-tasklight";
+const PACKAGE_NAME = "@tasklight/pi-tasklight";
 export const PACKAGE_REPO_URL = "https://github.com/revazi/pi-tasklight";
 export const PACKAGE_ISSUES_URL = `${PACKAGE_REPO_URL}/issues`;
 export const PACKAGE_NPM_URL = "https://www.npmjs.com/package/@tasklight/pi-tasklight";

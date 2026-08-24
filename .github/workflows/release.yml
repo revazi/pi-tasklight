@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  verify:
+    name: Verify release package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Validate release metadata
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$package_version" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package version $package_version" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: npm run check
+
+      - name: Run tests
+        run: npm test
+
+      - name: Dry-run npm publish
+        run: npm publish --dry-run --access public
+
+  publish:
+    name: Publish npm package
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@tasklight/pi-tasklight
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Validate release metadata
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          [[ "$GITHUB_REF_NAME" == "v$package_version" ]] || {
+            echo "Tag $GITHUB_REF_NAME does not match package version $package_version" >&2
+            exit 1
+          }
+
+      - name: Require npm trusted-publishing support
+        run: |
+          npm_version="$(npm --version)"
+          node - "$npm_version" <<'NODE'
+          const [major, minor, patch] = process.argv[2].split(".").map(Number);
+          if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) {
+            throw new Error("npm 11.5.1 or newer is required for trusted publishing");
+          }
+          NODE
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
+
+  github-release:
+    name: Create GitHub release
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Create GitHub release for verified tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+
+  verify-published-release:
+    name: Verify npm and GitHub release agreement
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: github-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Require matching published versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          expected_version="${GITHUB_REF_NAME#v}"
+          published_version=""
+          for attempt in 1 2 3 4 5 6; do
+            published_version="$(npm view @tasklight/pi-tasklight version 2>/dev/null || true)"
+            [[ "$published_version" == "$expected_version" ]] && break
+            sleep 10
+          done
+          [[ "$published_version" == "$expected_version" ]] || {
+            echo "npm latest is $published_version; expected $expected_version" >&2
+            exit 1
+          }
+          release_tag="$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)"
+          [[ "$release_tag" == "$GITHUB_REF_NAME" ]] || {
+            echo "GitHub release tag is $release_tag; expected $GITHUB_REF_NAME" >&2
+            exit 1
+          }
