@@ -1,12 +1,5 @@
 import { matchesKey, truncateToWidth, visibleWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
-import {
-	PACKAGE_INFO,
-	PACKAGE_ISSUES_URL,
-	PACKAGE_NAME,
-	PACKAGE_NPM_URL,
-	PACKAGE_REPO_URL,
-	TASKLIGHT_DOCTOR_TIMEOUT_MS,
-} from "./constants.ts";
+import { PACKAGE_INFO, PACKAGE_ISSUES_URL, PACKAGE_NPM_URL, PACKAGE_REPO_URL, TASKLIGHT_DOCTOR_TIMEOUT_MS } from "./constants.ts";
 import { DEFAULT_DOCTOR_OUTPUT_MAX_LINES, type DoctorDisplay, doctorDisplayFromResult, tasklightInfoPlainLines } from "./doctor.ts";
 import { runTasklightCommand } from "./tasklight-cli.ts";
 

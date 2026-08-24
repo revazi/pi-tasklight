@@ -1,6 +1,6 @@
 {
 	"name": "@tasklight/pi-tasklight",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Pi extension for Tasklight notifications",
 	"author": "Revaz Zakalashvili",
 	"homepage": "https://github.com/revazi/pi-tasklight#readme",
@@ -21,7 +21,7 @@
 	},
 	"files": ["README.md", "LICENSE", "CONTRIBUTING.md", "SECURITY.md", "pi-tasklight.png", "extensions", "src"],
 	"dependencies": {
-		"@tasklight/cli": "^0.1.1"
+		"@tasklight/cli": "^0.2.0"
 	},
 	"pi": {
 		"extensions": ["./extensions/tasklight.ts"],
